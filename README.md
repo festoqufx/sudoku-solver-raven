@@ -5,7 +5,7 @@ This web app uses Simulated Annealing to solve Sudoku puzzles. Sudoku is a numbe
 
 Simulated Annealing is an optimization algorithm that mimics the process of annealing in metallurgy. It explores different solutions, including worse ones, gradually reducing the acceptance of worse solutions over time. This helps it find the best solution to a problem, even in complex scenarios.
 
-[https://sudoku-solver-sa.netlify.app/](https://sudoku-solver-sa.netlify.app/)  
+[https://sudoku-solver-alpha-ochre.vercel.app/]  
 <img  src="https://api.netlify.com/api/v1/badges/3d681982-b4f1-4bef-9765-06a6d858f2dd/deploy-status"  alt="Netlify Status"/> 
 
 ## Key Features 
