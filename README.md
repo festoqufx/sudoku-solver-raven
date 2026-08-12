@@ -1,11 +1,11 @@
 
 # Sudoku Solver Using Simulated Annealing
-![](https://www.dropbox.com/s/ifgung48dlcrw61/sudoku-solver-using-simulated-annealing-cover.png?raw=1)  
+ 
 This web app uses Simulated Annealing to solve Sudoku puzzles. Sudoku is a number puzzle where a 9x9 grid must be filled with digits 1 to 9, ensuring each row, column, and 3x3 sub-grid has all digits once.  
 
 Simulated Annealing is an optimization algorithm that mimics the process of annealing in metallurgy. It explores different solutions, including worse ones, gradually reducing the acceptance of worse solutions over time. This helps it find the best solution to a problem, even in complex scenarios.
 
-[https://sudoku-solver-alpha-ochre.vercel.app/]  
+[sudoku-solver-alpha-ochre.vercel.app]  
 <img  src="https://api.netlify.com/api/v1/badges/3d681982-b4f1-4bef-9765-06a6d858f2dd/deploy-status"  alt="Netlify Status"/> 
 
 ## Key Features 
@@ -29,5 +29,4 @@ If you want to contribute to this project, there are several ways you can do so:
 ## About
 As a computer science student in my third year, second semester, I have been assigned the task of implementing a local search algorithm for solving Sudoku puzzles as part of my artificial intelligence subject. This assignment has sparked my interest, leading me to incorporate it into a web application.
  
-## License
-This project is licensed under the [MIT License](LICENSE).
+
