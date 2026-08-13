@@ -6,7 +6,13 @@ export default {
     "./src/**/*.{js,jsx,ts,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        sans: ['"DM Sans"', 'Segoe UI', 'sans-serif'],
+        display: ['"Space Grotesk"', '"DM Sans"', 'sans-serif'],
+        mono: ['"IBM Plex Mono"', 'ui-monospace', 'monospace'],
+      },
+    },
     screens: {
       'xs': '420px',
       'sm': '640px',
@@ -17,4 +23,3 @@ export default {
   },
   plugins: [],
 }
-

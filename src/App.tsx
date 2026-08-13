@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { AiFillCheckCircle } from 'react-icons/ai';
 import { BiErrorAlt } from 'react-icons/bi';
 import INITIAL_STATE, { State } from './INITIAL_STATE';
-import Darkmode from './components/Darkmode';
+import ThemeToggle from './components/Darkmode';
 import Documentation from './components/Documentation';
 import Interactions from './components/Interactions';
 import SudokuBoard from './components/SudokuBoard';
@@ -11,63 +11,84 @@ function App() {
 	const [state, setState] = useState<State>(INITIAL_STATE);
 
 	return (
-		<div className='min-h-screen bg-[linear-gradient(135deg,#f5f5f5_0%,#ffffff_100%)] text-neutral-900'>
-			<div className='mx-auto flex min-h-screen max-w-7xl flex-col px-4 py-6 sm:px-6 lg:px-8'>
-				<header className='rounded-[2rem] border border-neutral-200 bg-white/90 px-6 py-8 shadow-[0_10px_40px_rgba(0,0,0,0.04)] backdrop-blur sm:px-8'>
-					<div className='flex flex-col items-center gap-3 text-center'>
-						<div className='flex items-center gap-3'>
-							<span className='inline-flex h-10 w-10 items-center justify-center rounded-full border border-neutral-300 text-base font-semibold text-neutral-900'>S</span>
-							<div className='flex items-center gap-2'>
-								<Darkmode />
-								<h1 className='text-3xl font-semibold tracking-tight text-neutral-950 sm:text-4xl'>Sudoku Solver</h1>
-							</div>
-						</div>
-						<p className='max-w-3xl text-sm leading-6 text-neutral-600 sm:text-base'>
-							Please be aware that this solver may not always solve the Sudoku, as it uses{' '}
-							<a href='https://en.wikipedia.org/wiki/Simulated_annealing' target='_blank' rel='noreferrer' className='font-medium text-neutral-900 underline decoration-neutral-300 underline-offset-4 transition hover:text-neutral-700'>
+		<div className='app-shell min-h-screen text-[var(--fg)]'>
+			<div className='mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-6 sm:px-6 lg:px-8'>
+				<header className='flex flex-col gap-6 border-b border-[var(--border)] pb-6 sm:flex-row sm:items-end sm:justify-between'>
+					<div className='max-w-2xl space-y-3'>
+						<p className='text-xs font-medium uppercase tracking-[0.28em] text-[var(--muted)]'>Local search · puzzle lab</p>
+						<h1 className='font-display text-4xl font-semibold tracking-tight sm:text-5xl'>Sudoku Solver</h1>
+						<p className='text-sm leading-7 text-[var(--muted)] sm:text-base'>
+							A clean monochrome workspace for generating boards and solving them with{' '}
+							<a
+								href='https://en.wikipedia.org/wiki/Simulated_annealing'
+								target='_blank'
+								rel='noreferrer'
+								className='font-medium text-[var(--fg)] underline decoration-[var(--border-strong)] underline-offset-4'
+							>
 								simulated annealing
-							</a>{' '}
-							for solving, a local search algorithm.
+							</a>
+							. Results are probabilistic—retry or tweak parameters if a run stalls.
 						</p>
 					</div>
+					<ThemeToggle />
 				</header>
 
-				<main className='mt-6 flex-1'>
-					<section className='grid gap-6 lg:grid-cols-[1.15fr_0.85fr]'>
-						<div className='rounded-[2rem] border border-neutral-200 bg-white p-4 shadow-[0_10px_40px_rgba(0,0,0,0.04)] sm:p-6'>
+				<main className='mt-8 flex-1'>
+					<section className='grid items-start gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]'>
+						<div className='space-y-4'>
+							<div className='flex items-center justify-between gap-3'>
+								<h2 className='text-sm font-medium uppercase tracking-[0.2em] text-[var(--muted)]'>Board</h2>
+								{state.status === 'solved' ? (
+									<span className='inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] px-3 py-1 text-xs font-medium'>
+										<AiFillCheckCircle className='h-3.5 w-3.5' aria-hidden />
+										Solved · {state.iterations.toLocaleString()} iters
+									</span>
+								) : state.status === 'failed' ? (
+									<span className='inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] px-3 py-1 text-xs font-medium'>
+										<BiErrorAlt className='h-3.5 w-3.5' aria-hidden />
+										Unsolved · try again
+									</span>
+								) : state.status === 'solving' ? (
+									<span className='inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] px-3 py-1 text-xs font-medium'>
+										Searching…
+									</span>
+								) : null}
+							</div>
 							<SudokuBoard state={state} setState={setState} />
 						</div>
-						<div className='rounded-[2rem] border border-neutral-200 bg-white p-4 shadow-[0_10px_40px_rgba(0,0,0,0.04)] sm:p-6'>
+
+						<div className='rounded-[1.75rem] border border-[var(--border)] bg-[var(--surface)] p-4 shadow-[var(--shadow)] sm:p-6'>
 							<Interactions state={state} setState={setState} />
 						</div>
 					</section>
 
-					<section className='mt-6 rounded-[2rem] border border-neutral-200 bg-white p-4 shadow-[0_10px_40px_rgba(0,0,0,0.04)] sm:p-6'>
-						{state.notSolved ? (
-							<p className='flex items-center justify-center gap-2 rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700'>
-								<BiErrorAlt className='h-4 w-4 text-neutral-950' />
-								<span>Sudoku board may be invalid or there is something wrong with the parameters.</span>
+					<section className='mt-10 border-t border-[var(--border)] pt-8'>
+						{state.status === 'failed' ? (
+							<p className='mb-6 flex items-start gap-2 rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-3 text-sm text-[var(--muted)]' role='status'>
+								<BiErrorAlt className='mt-0.5 h-4 w-4 shrink-0 text-[var(--fg)]' aria-hidden />
+								<span>
+									No complete solution in this run. The board may be invalid, or the annealing schedule needs a
+									retry with different parameters.
+								</span>
 							</p>
-						) : state.solved ? (
-							<p className='flex items-center justify-center gap-2 rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700'>
-								<AiFillCheckCircle className='h-4 w-4 text-neutral-950' />
-								<span>Iterations: {state.iterations}</span>
-							</p>
-						) : <div className='h-2 rounded-full bg-neutral-100' />}
-
+						) : null}
 						<Documentation />
 					</section>
 				</main>
 
-				<footer className='mt-6 border-t border-neutral-200 pt-6'>
-					<div className='flex flex-col items-center justify-between gap-3 text-center text-sm text-neutral-600 sm:flex-row sm:text-left'>
-						<p>
-							Made with <span className='font-semibold text-neutral-950'>Ravenom</span>
-						</p>
-						<a href='https://github.com/festoqufx/lotto-probability-pick' target='_blank' rel='noreferrer' className='inline-flex items-center rounded-full border border-neutral-300 bg-neutral-950 px-4 py-2 font-medium text-white transition hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:ring-offset-2'>
-							Star on GitHub
-						</a>
-					</div>
+				<footer className='mt-10 flex flex-col items-start justify-between gap-4 border-t border-[var(--border)] pt-6 text-sm text-[var(--muted)] sm:flex-row sm:items-center'>
+					<p>
+						Built for exploring local search ·{' '}
+						<span className='font-medium text-[var(--fg)]'>Sudoku Solver</span>
+					</p>
+					<a
+						href='https://github.com/festoqufx/sudoku-solver'
+						target='_blank'
+						rel='noreferrer'
+						className='inline-flex items-center rounded-full border border-[var(--fg)] bg-[var(--fg)] px-4 py-2 font-medium text-[var(--bg)] transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--fg)]'
+					>
+						View on GitHub
+					</a>
 				</footer>
 			</div>
 		</div>

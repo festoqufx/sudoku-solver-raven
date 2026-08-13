@@ -1,187 +1,168 @@
 import { random, sample } from 'lodash';
+import { Board, Coord, cloneBoard, getEmptyCoords } from '../utilities/board';
 
 class SudokuSolver {
-    maxIteration: number;
-    initialTemperature: number;
-    coolingRate: number;
-    emptyCells: [number, number][];
-    initialBoard: number[][];
-    reheatTo: number;
-    reheatAfterX: number;
+	maxIteration: number;
+	initialTemperature: number;
+	coolingRate: number;
+	emptyCells: Coord[];
+	initialBoard: Board;
+	reheatTo: number;
+	reheatAfterX: number;
 
-    constructor(board: number[][], maxIteration: number, initialTemperature: number, coolingRate: number, reheatTo: number, reheatAfterX: number) {
-        console.log("Sudoku Solver Initialized");
+	constructor(
+		board: Board,
+		maxIteration: number,
+		initialTemperature: number,
+		coolingRate: number,
+		reheatTo: number,
+		reheatAfterX: number,
+	) {
+		this.maxIteration = maxIteration;
+		this.initialTemperature = initialTemperature;
+		this.coolingRate = coolingRate;
+		this.reheatTo = reheatTo;
+		this.reheatAfterX = reheatAfterX;
+		this.emptyCells = getEmptyCoords(board);
+		this.initialBoard = this.initializeBoard(board);
+	}
 
-        this.maxIteration = maxIteration;
-        this.initialTemperature = initialTemperature;
-        this.coolingRate = coolingRate;
-        this.reheatTo = reheatTo;
-        this.reheatAfterX = reheatAfterX;
+	initializeBoard(board: Board): Board {
+		const newBoard = cloneBoard(board);
 
-        this.emptyCells = this.getEmptyCells(board);
-        this.initialBoard = this.initializeBoard(board);
-    }
+		board.forEach((row, y) => {
+			const numbers: number[] = row.filter((col) => col !== 0);
 
-    getEmptyCells(board: number[][]): [number, number][] {
-        const emptyCells: [number, number][] = [];
+			row.forEach((col, x) => {
+				if (col === 0) {
+					let candidate = random(1, 9);
+					let guard = 0;
+					while (numbers.includes(candidate) && guard < 20) {
+						candidate = random(1, 9);
+						guard += 1;
+					}
+					if (!numbers.includes(candidate)) {
+						newBoard[y][x] = candidate;
+						numbers.push(candidate);
+					} else {
+						// Fallback if row already has all digits somehow
+						for (let n = 1; n <= 9; n++) {
+							if (!numbers.includes(n)) {
+								newBoard[y][x] = n;
+								numbers.push(n);
+								break;
+							}
+						}
+					}
+				}
+			});
+		});
 
-        for (let row = 0; row < board.length; row++) {
-            for (let col = 0; col < board[row].length; col++) {
-                if (!board[row][col]) emptyCells.push([row, col]);
-            }
-        }
+		return newBoard;
+	}
 
-        return emptyCells;
-    }
+	getListCost(arr: number[]): number {
+		let cost = 0;
+		for (let i = 0; i < arr.length; i++) {
+			for (let j = i + 1; j < arr.length; j++) {
+				if (arr[i] === arr[j]) cost += 1;
+			}
+		}
+		return cost;
+	}
 
-    initializeBoard(board: number[][]): number[][] {
-        const newBoard: number[][] = board.map((row) => [...row]);
+	getSudokuCost(board: Board): number {
+		let cost = 0;
 
-        board.forEach((row, y) => {
-            let numbers: number[] = [];
+		for (let y = 0; y < 9; y++) {
+			cost += this.getListCost(board[y]);
+		}
 
-            row.forEach((col) => {
-                if (col !== 0) numbers.push(col);
-            });
+		for (let x = 0; x < 9; x++) {
+			const col = board.map((row) => row[x]);
+			cost += this.getListCost(col);
+		}
 
-            row.forEach((col, x) => {
-                if (col === 0) {
-                    while (true) {
-                        let candidate = random(1, 9);
+		for (let i = 0; i < 3; i++) {
+			for (let j = 0; j < 3; j++) {
+				const subgrid: number[] = [];
+				for (let y = i * 3; y < (i + 1) * 3; y++) {
+					for (let x = j * 3; x < (j + 1) * 3; x++) {
+						subgrid.push(board[y][x]);
+					}
+				}
+				cost += this.getListCost(subgrid);
+			}
+		}
 
-                        if (!numbers.includes(candidate)) {
-                            newBoard[y][x] = candidate;
-                            numbers.push(candidate);
+		return cost;
+	}
 
-                            break;
-                        }
-                    }
-                }
-            });
-        });
+	generateNeighbor(board: Board): Board {
+		if (this.emptyCells.length < 2) return cloneBoard(board);
 
-        console.log("Board initialization complete.");
-        return newBoard;
-    }
+		const newBoard = cloneBoard(board);
+		let cell1: Coord | undefined;
+		let cell2: Coord | undefined;
+		let attempts = 0;
 
-    getListCost(arr: any[]): number {
-        let cost = 0;
+		while (attempts < 50) {
+			cell1 = sample(this.emptyCells);
+			cell2 = sample(this.emptyCells);
+			attempts += 1;
+			if (cell1 && cell2 && (cell1[0] !== cell2[0] || cell1[1] !== cell2[1])) break;
+		}
 
-        // Increment cost by 1, if there's a repeated element
-        for (let i = 0; i < arr.length; i++) {
-            for (let j = i + 1; j < arr.length; j++) { 
-                if (arr[i] === arr[j]) cost += 1;
-            }
-        }
+		if (cell1 && cell2) {
+			const temp = newBoard[cell1[0]][cell1[1]];
+			newBoard[cell1[0]][cell1[1]] = newBoard[cell2[0]][cell2[1]];
+			newBoard[cell2[0]][cell2[1]] = temp;
+		}
 
-        return cost;
-    }
+		return newBoard;
+	}
 
-    getSudokuCost(board: number[][]): number {
-        let cost = 0;
+	solveSudoku(): [Board, boolean, number] {
+		if (this.emptyCells.length === 0) {
+			const cost = this.getSudokuCost(this.initialBoard);
+			return [cloneBoard(this.initialBoard), cost === 0, 0];
+		}
 
-        // Iterate over each row in the board.
-        for (let y = 0; y < 9; y++) {
-            cost += this.getListCost(board[y]);
-        }
+		let currentState = cloneBoard(this.initialBoard);
+		let currentCost = this.getSudokuCost(currentState);
+		let currentTemperature = this.initialTemperature;
+		let iteration = 0;
 
-        // Iterate over each column in the board.
-        for (let x = 0; x < 9; x++) {
-            const col = board.map(row => row[x]);
-            cost += this.getListCost(col);
-        }
+		while (iteration < this.maxIteration) {
+			if (currentCost === 0) {
+				return [currentState, true, iteration];
+			}
 
-        // Iterate over each sub-grid in the board.
-        for (let i = 0; i < 3; i++) {
-            for (let j = 0; j < 3; j++) {
-                const subgrid = [];
-                for (let y = i * 3; y < (i + 1) * 3; y++) {
-                    for (let x = j * 3; x < (j + 1) * 3; x++) {
-                        subgrid.push(board[y][x]);
-                    }
-                }
-                cost += this.getListCost(subgrid);
-            }
-        }
+			if (iteration > 0 && iteration % this.reheatAfterX === 0) {
+				currentTemperature = this.reheatTo;
+			}
 
-        return cost;
-    }
+			const newState = this.generateNeighbor(currentState);
+			const newCost = this.getSudokuCost(newState);
+			const deltaCost = newCost - currentCost;
 
-    generateNeighbor(board: number[][]): number[][] {
-        const newBoard: number[][] = board.map(row => [...row]);
-        let cell1: [number, number] | undefined, cell2: [number, number] | undefined;
-        
-        // Randomly choose two cells that can be switched (this.emptyCells)
-        while (true) {
-            cell1 = sample(this.emptyCells);
-            cell2 = sample(this.emptyCells);
-    
-            if (cell1 && cell2 && (cell1[0] !== cell2[0] || cell1[1] !== cell2[1])) break;
-        }
-        
-        // Switch the values of the two cells
-        if (cell1 && cell2) {
-            const temp = newBoard[cell1[0]][cell1[1]];
+			if (deltaCost < 0) {
+				currentState = newState;
+				currentCost = newCost;
+			} else {
+				const acceptanceProbability = Math.exp(-deltaCost / Math.max(currentTemperature, 1e-9));
+				if (Math.random() < acceptanceProbability) {
+					currentState = newState;
+					currentCost = newCost;
+				}
+			}
 
-            newBoard[cell1[0]][cell1[1]] = newBoard[cell2[0]][cell2[1]];
-            newBoard[cell2[0]][cell2[1]] = temp;
-        }
-    
-        return newBoard;
-    }    
-    
-    solveSudoku(): [number[][], boolean, number] {
-        console.log("Solving Sudoku using Simulated Annealing...");
-        console.log(`Parameters:
-            Max Iteration: ${this.maxIteration}
-            Initial Temperature: ${this.initialTemperature}
-            Cooling Rate: ${this.coolingRate}
-            Reheat X: ${this.reheatTo}
-            Reheat after ${this.reheatAfterX} times`);
+			iteration += 1;
+			currentTemperature *= this.coolingRate;
+		}
 
-        let current_state: number[][] = this.initialBoard.map(row => [...row]);
-
-        let current_cost: number = this.getSudokuCost(current_state);
-
-        let current_temperature: number = this.initialTemperature;
-        let iteration: number = 0;
-
-        while (iteration < this.maxIteration) {
-            // Sudoku is solved if the current cost is 0
-            if (current_cost === 0) {
-                console.log(`Sudoku Solved!\nIterations: ${iteration}`);
-
-                return [current_state, true, iteration];
-            }
-            
-            // Reheat the annealer
-            if(iteration % this.reheatAfterX === 0) current_temperature = this.reheatTo;
-
-            const new_state: number[][] = this.generateNeighbor(current_state);
-            const new_cost: number = this.getSudokuCost(new_state);
-            const delta_cost: number = new_cost - current_cost;
-
-            if (delta_cost < 0) {
-                current_state = [...new_state];
-                current_cost = new_cost;
-
-            } else {
-                const acceptance_probability: number = Math.exp(-delta_cost / current_temperature);
-
-                if (Math.random() < acceptance_probability) {
-                    current_state = new_state.map((row) => [...row]);
-                    current_cost = new_cost;
-                }
-            }
-
-            iteration++;
-            current_temperature *= this.coolingRate;
-        }
-
-        console.log(`Can't solve sudoku after ${iteration} iterations.\nSudoku board may be invalid or there's is something wrong with my parameters or you can just try to solve it again.`);
-        return [current_state, false, iteration];
-    }
-
+		return [currentState, false, iteration];
+	}
 }
 
-export default SudokuSolver
+export default SudokuSolver;

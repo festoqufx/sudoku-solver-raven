@@ -1,30 +1,19 @@
-import { useEffect, useState } from "react";
-import { BsSunFill } from "react-icons/bs";
-import { FaMoon } from "react-icons/fa";
+import { BsMoonStarsFill, BsSunFill } from 'react-icons/bs';
+import { useTheme } from '../context/ThemeContext';
 
-export default function Darkmode() {
-  // Retrieve the theme from local storage, or default to "dark"
-  const savedTheme = localStorage.getItem("theme");
-  const [theme, setTheme] = useState(savedTheme || "dark");
+export default function ThemeToggle() {
+	const { theme, toggleTheme } = useTheme();
+	const isDark = theme === 'dark';
 
-  useEffect(() => {
-    // Update the class on the root element
-    document.documentElement.classList.toggle("dark", theme === "dark");
-
-    // Save the current theme to local storage
-    localStorage.setItem("theme", theme);
-  }, [theme]);
-
-  const switchTheme = () => {
-    setTheme(theme === "dark" ? "light" : "dark");
-  };
-
-  return (
-    <button
-      onClick={switchTheme}
-      className="text-gray-500 dark:text-gray-50 hover:text-gray-900 transition duration-300 dark:hover:text-yellow-500"
-    >
-      {theme === "dark" ? <BsSunFill /> : <FaMoon />}
-    </button>
-  );
+	return (
+		<button
+			type='button'
+			onClick={toggleTheme}
+			aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+			title={isDark ? 'Light mode' : 'Dark mode'}
+			className='inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface)] text-[var(--fg)] transition hover:bg-[var(--surface-hover)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--fg)]'
+		>
+			{isDark ? <BsSunFill className='h-4 w-4' aria-hidden /> : <BsMoonStarsFill className='h-4 w-4' aria-hidden />}
+		</button>
+	);
 }

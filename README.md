@@ -1,32 +1,65 @@
-
 # Sudoku Solver
- 
-This web app uses Simulated Annealing to solve Sudoku puzzles. Sudoku is a number puzzle where a 9x9 grid must be filled with digits 1 to 9, ensuring each row, column, and 3x3 sub-grid has all digits once.  
 
-Simulated Annealing is an optimization algorithm that mimics the process of annealing in metallurgy. It explores different solutions, including worse ones, gradually reducing the acceptance of worse solutions over time. This helps it find the best solution to a problem, even in complex scenarios.
+A React + TypeScript web app for generating Sudoku puzzles and solving them with **simulated annealing**. The interface uses a clean black-and-white design with full **light** and **dark** mode support.
 
-[[https://sudoku-solver-raven.vercel.app/](https://sudoku-solver-raven.vercel.app/)]  
-<img  src="https://api.netlify.com/api/v1/badges/3d681982-b4f1-4bef-9765-06a6d858f2dd/deploy-status"  alt="Netlify Status"/> 
+**Live demo:** [https://sudoku-solver-raven.vercel.app/](https://sudoku-solver-raven.vercel.app/)
 
-## Key Features 
+## Features
 
- 1. Solve Sudoku puzzles of different difficulty levels: Easy, Medium, and Hard.
- 2. Generate random Sudoku puzzles for solving with different difficulty levels: Easy, Medium, and Hard.
- 3. Use the Simulated Annealing algorithm to solve Sudoku puzzles.
- 4. Highlight errors and conflicts in the input Sudoku grid for easy identification.
- 5. Customize simulated annealing parameters for fine-tuning the solving process.
+- Generate Easy, Medium, and Hard puzzles instantly
+- Solve with configurable simulated annealing parameters
+- Light / dark theme (persisted, respects system preference on first visit)
+- Keyboard navigation (arrows, 1–9, Delete) and on-screen number pad
+- Conflict, peer, and same-number highlighting
+- Undo, hint, clear answers / board
+- Copy / paste 81-character puzzle strings
+- Live timer, fill progress, and conflict counters
+- Responsive layout for mobile and desktop
 
-## Technologies Used
-<img  src="https://skillicons.dev/icons?i=html,css,react,ts,nodejs,netlify&perline=7"/>
+## Tech stack
+
+- React 18 + TypeScript
+- Vite
+- Tailwind CSS
+- Lodash (sampling / random helpers in the annealer)
+
+## Getting started
+
+```bash
+npm install
+npm run dev
+```
+
+Open the URL Vite prints (usually `http://localhost:5173`).
+
+### Scripts
+
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start the development server |
+| `npm run build` | Type-check and build for production |
+| `npm run preview` | Preview the production build |
+| `npm run lint` | Run ESLint |
+
+## How solving works
+
+Simulated annealing explores neighboring boards by swapping values in empty cells. Better boards are always accepted; worse boards may be accepted early (high temperature) so the search can escape local optima. Temperature cools over time; optional reheating periodically boosts exploration. A cost of `0` means a valid Sudoku.
+
+Puzzle generation uses fast symmetry transforms of a known solution (digit remapping, band/stack/row/column shuffles), then removes cells by difficulty—so generation stays snappy in the browser.
+
+## Accessibility
+
+- Visible focus rings on interactive controls
+- Theme toggle and board cells expose ARIA labels
+- Strong monochrome contrast in both themes
+- `prefers-reduced-motion` respected for animations
 
 ## Contributing
-If you want to contribute to this project, there are several ways you can do so:
 
-1.  Submit bugs and feature requests: If you find a bug or have a feature request, please submit an issue on the GitHub repository.
-2.  Submit pull requests: If you have a fix or improvement for the code, feel free to submit a pull request on the GitHub repository. Please make sure your code is well-documented and tested.
-3.  Spread the word: If you like this project, please share it with your friends and colleagues.
+1. Open an issue for bugs or feature ideas
+2. Submit a pull request with a clear description and tested changes
+3. Keep code readable and avoid drive-by refactors unrelated to the change
 
-## About
-As a computer science student in my third year, second semester, I have been assigned the task of implementing a local search algorithm for solving Sudoku puzzles as part of my artificial intelligence subject. This assignment has sparked my interest, leading me to incorporate it into a web application.
- 
+## License
 
+See [LICENSE](./LICENSE).
